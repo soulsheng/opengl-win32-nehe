@@ -11,6 +11,12 @@
 #include <gl\glaux.h>				// Header File For The Glaux Library
 
 #define	MAX_PARTICLES	1000		// Number Of Particles To Create
+#define	BOX_PARTICLES	1			// Box or Plane
+#define BMP_PARTICLES	"Data/Wood.bmp"// Particle.bmp
+#define LEN_PARTICLE	0.2f		// Lenth  x
+#define WID_PARTICLE	0.1f		// Width  z
+#define HEI_PARTICLE	0.1f		// Height y
+#define Z_ZOOM			140.0f		// ÊÓµãÔ¶½ü
 
 HDC			hDC=NULL;				// Private GDI Device Context
 HGLRC		hRC=NULL;				// Permanent Rendering Context
@@ -27,7 +33,7 @@ bool	rp;							// Enter Key Pressed?
 float	slowdown=2.0f;				// Slow Down Particles
 float	xspeed;						// Base X Speed (To Allow Keyboard Direction Of Tail)
 float	yspeed;						// Base Y Speed (To Allow Keyboard Direction Of Tail)
-float	zoom=-40.0f;				// Used To Zoom Out
+float	zoom=-Z_ZOOM;				// Used To Zoom Out
 
 GLuint	loop;						// Misc Loop Variable
 GLuint	col;						// Current Color Selection
@@ -87,7 +93,7 @@ int LoadGLTextures()									// Load Bitmap And Convert To A Texture
         AUX_RGBImageRec *TextureImage[1];				// Create Storage Space For The Textures
         memset(TextureImage,0,sizeof(void *)*1);		// Set The Pointer To NULL
 
-        if (TextureImage[0]=LoadBMP("Data/Particle.bmp"))	// Load Particle Texture
+        if (TextureImage[0]=LoadBMP( BMP_PARTICLES ))	// Load Particle Texture
         {
 			Status=TRUE;								// Set The Status To TRUE
 			glGenTextures(1, &texture[0]);				// Create One Texture
@@ -138,9 +144,9 @@ int InitGL(GLvoid)										// All Setup For OpenGL Goes Here
 	glShadeModel(GL_SMOOTH);							// Enable Smooth Shading
 	glClearColor(0.0f,0.0f,0.0f,0.0f);					// Black Background
 	glClearDepth(1.0f);									// Depth Buffer Setup
-	glDisable(GL_DEPTH_TEST);							// Disable Depth Testing
-	glEnable(GL_BLEND);									// Enable Blending
-	glBlendFunc(GL_SRC_ALPHA,GL_ONE);					// Type Of Blending To Perform
+	//glDisable(GL_DEPTH_TEST);							// Disable Depth Testing
+	//glEnable(GL_BLEND);									// Enable Blending
+	//glBlendFunc(GL_SRC_ALPHA,GL_ONE);					// Type Of Blending To Perform
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);	// Really Nice Perspective Calculations
 	glHint(GL_POINT_SMOOTH_HINT,GL_NICEST);				// Really Nice Point Smoothing
 	glEnable(GL_TEXTURE_2D);							// Enable Texture Mapping
@@ -165,14 +171,53 @@ int InitGL(GLvoid)										// All Setup For OpenGL Goes Here
 	return TRUE;										// Initialization Went OK
 }
 
-void DrawParticle(float x, float y, float z)
+void DrawParticle(float x, float y, float z, 
+	float length=LEN_PARTICLE, float width=WID_PARTICLE, float height=HEI_PARTICLE )
 {
+#if !BOX_PARTICLES	// Quad Plane
 	glBegin(GL_TRIANGLE_STRIP);						// Build Quad From A Triangle Strip
 	glTexCoord2d(1,1); glVertex3f(x+0.5f,y+0.5f,z); // Top Right
 	glTexCoord2d(0,1); glVertex3f(x-0.5f,y+0.5f,z); // Top Left
 	glTexCoord2d(1,0); glVertex3f(x+0.5f,y-0.5f,z); // Bottom Right
 	glTexCoord2d(0,0); glVertex3f(x-0.5f,y-0.5f,z); // Bottom Left
 	glEnd();
+
+#else	// Cubic Box
+
+	glBegin(GL_QUADS);
+	// Front Face
+	glTexCoord2d(0,0); glVertex3f(x-length, y-height, z+width);
+	glTexCoord2d(1,0); glVertex3f(x+length, y-height, z+width);
+	glTexCoord2d(1,1); glVertex3f(x+length, y+height, z+width);
+	glTexCoord2d(0,1); glVertex3f(x-length, y+height, z+width);
+	// Back Face
+	glTexCoord2d(1,0); glVertex3f(x-length, y-height, z-width);
+	glTexCoord2d(1,1); glVertex3f(x-length, y+height, z-width);
+	glTexCoord2d(0,1); glVertex3f(x+length, y+height, z-width);
+	glTexCoord2d(0,0); glVertex3f(x+length, y-height, z-width);
+	// Top Face
+	glTexCoord2d(0,1); glVertex3f(x-length, y+height, z-width);
+	glTexCoord2d(0,0); glVertex3f(x-length, y+height, z+width);
+	glTexCoord2d(1,0); glVertex3f(x+length, y+height, z+width);
+	glTexCoord2d(1,1); glVertex3f(x+length, y+height, z-width);
+	// Bottom Face
+	glTexCoord2d(1,1); glVertex3f(x-length, y-height, z-width);
+	glTexCoord2d(0,1); glVertex3f(x+length, y-height, z-width);
+	glTexCoord2d(0,0); glVertex3f(x+length, y-height, z+width);
+	glTexCoord2d(1,0); glVertex3f(x-length, y-height, z+width);
+	// Right face
+	glTexCoord2d(1,0); glVertex3f(x+length, y-height, z-width);
+	glTexCoord2d(1,1); glVertex3f(x+length, y+height, z-width);
+	glTexCoord2d(0,1); glVertex3f(x+length, y+height, z+width);
+	glTexCoord2d(0,0); glVertex3f(x+length, y-height, z+width);
+	// Left Face
+	glTexCoord2d(0,0); glVertex3f(x-length, y-height, z-width);
+	glTexCoord2d(1,0); glVertex3f(x-length, y-height, z+width);
+	glTexCoord2d(1,1); glVertex3f(x-length, y+height, z+width);
+	glTexCoord2d(0,1); glVertex3f(x-length, y+height, z-width);
+	glEnd();
+
+#endif
 }
 
 void RefreshParticle()
@@ -184,6 +229,7 @@ void RefreshParticle()
 	particle[loop].xi+=particle[loop].xg;			// Take Pull On X Axis Into Account
 	particle[loop].yi+=particle[loop].yg;			// Take Pull On Y Axis Into Account
 	particle[loop].zi+=particle[loop].zg;			// Take Pull On Z Axis Into Account
+#if 0
 	particle[loop].life-=particle[loop].fade;		// Reduce Particles Life By 'Fade'
 
 	if (particle[loop].life<0.0f)					// If Particle Is Burned Out
@@ -200,6 +246,7 @@ void RefreshParticle()
 		particle[loop].g=colors[col][1];			// Select Green From Color Table
 		particle[loop].b=colors[col][2];			// Select Blue From Color Table
 	}
+#endif
 }
 
 void RespondKey()
@@ -241,7 +288,7 @@ int DrawGLScene(GLvoid)										// Here's Where We Do All The Drawing
 			float z=particle[loop].z+zoom;					// Particle Z Pos + Zoom
 
 			// Draw The Particle Using Our RGB Values, Fade The Particle Based On It's Life
-			glColor4f(particle[loop].r,particle[loop].g,particle[loop].b,particle[loop].life);
+			// glColor4f(particle[loop].r,particle[loop].g,particle[loop].b,particle[loop].life);
 
 			DrawParticle(x,y,z);								// Done Building Triangle Strip
 
