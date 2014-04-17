@@ -11,6 +11,10 @@
 #include <gl\glu.h>					// Header File For The GLu32 Library
 #include <gl\glaux.h>				// Header File For The Glaux Library
 
+#include "CChaffBomb.h"
+
+#define CCHAFFBOMB		1		// Àà·â×°
+
 #define	MAX_PARTICLES	1000		// Number Of Particles To Create
 #define	BOX_PARTICLES	1			// Box or Plane
 #define BMP_PARTICLES	"Data/Wood.bmp"// Particle.bmp
@@ -81,6 +85,8 @@ static GLfloat colors[12][3]=		// Rainbow Of Colors
 	{0.5f,0.5f,1.0f},{0.75f,0.5f,1.0f},{1.0f,0.5f,1.0f},{1.0f,0.5f,0.75f}
 };
 
+CChaffBomb	g_chaffBomb;
+
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc
 
 AUX_RGBImageRec *LoadBMP(char *Filename)				// Loads A Bitmap Image
@@ -148,10 +154,17 @@ GLvoid ReSizeGLScene(GLsizei width, GLsizei height)		// Resize And Initialize Th
 
 int InitGL(GLvoid)										// All Setup For OpenGL Goes Here
 {
+#if CCHAFFBOMB
+	if (!g_chaffBomb.initialize(0,0, -Z_ZOOM) )
+	{
+		return FALSE;
+	}
+#else
 	if (!LoadGLTextures())								// Jump To Texture Loading Routine
 	{
 		return FALSE;									// If Texture Didn't Load Return FALSE
 	}
+#endif
 
 	glShadeModel(GL_SMOOTH);							// Enable Smooth Shading
 	glClearColor(0.0f,0.0f,0.0f,0.0f);					// Black Background
@@ -162,8 +175,8 @@ int InitGL(GLvoid)										// All Setup For OpenGL Goes Here
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);	// Really Nice Perspective Calculations
 	glHint(GL_POINT_SMOOTH_HINT,GL_NICEST);				// Really Nice Point Smoothing
 	glEnable(GL_TEXTURE_2D);							// Enable Texture Mapping
-	glBindTexture(GL_TEXTURE_2D,texture[0]);			// Select Our Texture
 
+#if !CCHAFFBOMB
 	for (loop=0;loop<MAX_PARTICLES;loop++)				// Initials All The Textures
 	{
 		particle[loop].active=true;								// Make All The Particles Active
@@ -179,6 +192,7 @@ int InitGL(GLvoid)										// All Setup For OpenGL Goes Here
 		particle[loop].yg=-0.8f;								// Set Vertical Pull Downward
 		particle[loop].zg=0.0f;									// Set Pull On Z Axis To Zero
 	}
+#endif
 
 	return TRUE;										// Initialization Went OK
 }
@@ -263,26 +277,24 @@ void RefreshParticle()
 
 void RespondKey()
 {
-	// If Number Pad 8 And Y Gravity Is Less Than 1.5 Increase Pull Upwards
-	if (keys[VK_NUMPAD8] && (particle[loop].yg<1.5f)) particle[loop].yg+=0.01f;
-
-	// If Number Pad 2 And Y Gravity Is Greater Than -1.5 Increase Pull Downwards
-	if (keys[VK_NUMPAD2] && (particle[loop].yg>-1.5f)) particle[loop].yg-=0.01f;
-
-	// If Number Pad 6 And X Gravity Is Less Than 1.5 Increase Pull Right
-	if (keys[VK_NUMPAD6] && (particle[loop].xg<1.5f)) particle[loop].xg+=0.01f;
-
-	// If Number Pad 4 And X Gravity Is Greater Than -1.5 Increase Pull Left
-	if (keys[VK_NUMPAD4] && (particle[loop].xg>-1.5f)) particle[loop].xg-=0.01f;
 
 	if (keys[VK_TAB])										// Tab Key Causes A Burst
 	{
-		particle[loop].x=0.0f;								// Center On X Axis
-		particle[loop].y=0.0f;								// Center On Y Axis
-		particle[loop].z=0.0f;								// Center On Z Axis
-		particle[loop].xi=float((rand()%50)-26.0f)*10.0f;	// Random Speed On X Axis
-		particle[loop].yi=float((rand()%50)-25.0f)*10.0f;	// Random Speed On Y Axis
-		particle[loop].zi=float((rand()%50)-25.0f)*10.0f;	// Random Speed On Z Axis
+#if CCHAFFBOMB
+		g_chaffBomb.initialize(0,0, -Z_ZOOM);
+#else
+		for (loop=0;loop<MAX_PARTICLES;loop++)					// Loop Through All The Particles
+		{
+
+			particle[loop].x=0.0f;								// Center On X Axis
+			particle[loop].y=0.0f;								// Center On Y Axis
+			particle[loop].z=0.0f;								// Center On Z Axis
+			particle[loop].xi=float((rand()%50)-26.0f)*10.0f;	// Random Speed On X Axis
+			particle[loop].yi=float((rand()%50)-25.0f)*10.0f;	// Random Speed On Y Axis
+			particle[loop].zi=float((rand()%50)-25.0f)*10.0f;	// Random Speed On Z Axis
+
+		}
+#endif
 	}
 }
 
@@ -305,11 +317,18 @@ void RefreshEye()
 
 int DrawGLScene(GLvoid)										// Here's Where We Do All The Drawing
 {
+	glBindTexture(GL_TEXTURE_2D,texture[0]);			// Select Our Texture
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		// Clear Screen And Depth Buffer
 	//glLoadIdentity();										// Reset The ModelView Matrix
 	
 	RefreshEye();
 
+	RespondKey();
+
+#if CCHAFFBOMB
+	g_chaffBomb.DrawChaffBomb();
+#else
 	for (loop=0;loop<MAX_PARTICLES;loop++)					// Loop Through All The Particles
 	{
 		if (particle[loop].active)							// If The Particle Is Active
@@ -325,9 +344,10 @@ int DrawGLScene(GLvoid)										// Here's Where We Do All The Drawing
 
 			RefreshParticle();
 
-			RespondKey();
 		}
     }
+#endif
+
 	return TRUE;											// Everything Went OK
 }
 
@@ -370,6 +390,10 @@ GLvoid KillGLWindow(GLvoid)								// Properly Kill The Window
 		MessageBox(NULL,"Could Not Unregister Class.","SHUTDOWN ERROR",MB_OK | MB_ICONINFORMATION);
 		hInstance=NULL;									// Set hInstance To NULL
 	}
+
+#if CCHAFFBOMB
+	g_chaffBomb.unInitialize();
+#endif
 }
 
 /*	This Code Creates Our OpenGL Window.  Parameters Are:					*
