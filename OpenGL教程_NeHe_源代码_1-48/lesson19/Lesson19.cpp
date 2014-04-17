@@ -14,7 +14,7 @@
 #define	MAX_PARTICLES	1000		// Number Of Particles To Create
 #define	BOX_PARTICLES	1			// Box or Plane
 #define BMP_PARTICLES	"Data/Wood.bmp"// Particle.bmp
-#define LEN_PARTICLE	0.2f		// Lenth  x
+#define LEN_PARTICLE	0.4f		// Lenth  x
 #define WID_PARTICLE	0.1f		// Width  z
 #define HEI_PARTICLE	0.1f		// Height y
 #define Z_ZOOM			140.0f		// ÊÓµãÔ¶½ü
