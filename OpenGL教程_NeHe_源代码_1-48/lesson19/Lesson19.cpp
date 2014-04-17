@@ -5,6 +5,7 @@
  */
 
 #include <windows.h>				// Header File For Windows
+#include <math.h>			// Math Library Header File
 #include <stdio.h>					// Header File For Standard Input/Output
 #include <gl\gl.h>					// Header File For The OpenGL32 Library
 #include <gl\glu.h>					// Header File For The GLu32 Library
@@ -34,6 +35,17 @@ float	slowdown=2.0f;				// Slow Down Particles
 float	xspeed;						// Base X Speed (To Allow Keyboard Direction Of Tail)
 float	yspeed;						// Base Y Speed (To Allow Keyboard Direction Of Tail)
 float	zoom=-Z_ZOOM;				// Used To Zoom Out
+
+// ÂþÓÎ
+const float piover180 = 0.0174532925f;
+float heading;
+float xpos;
+float zpos;
+
+GLfloat	yrot;				// Y Rotation
+GLfloat walkbias = 0;
+GLfloat walkbiasangle = 0;
+GLfloat lookupdown = 0.0f;
 
 GLuint	loop;						// Misc Loop Variable
 GLuint	col;						// Current Color Selection
@@ -274,10 +286,29 @@ void RespondKey()
 	}
 }
 
+void RefreshEye()
+{
+	glLoadIdentity();									// Reset The View
+
+	GLfloat xtrans = -xpos;
+	GLfloat ztrans = -zpos;
+	GLfloat ytrans = -walkbias-0.25f;
+	GLfloat sceneroty = 360.0f - yrot;
+
+	int numtriangles;
+
+	glRotatef(lookupdown,1.0f,0,0);
+	glRotatef(sceneroty,0,1.0f,0);
+
+	glTranslatef(xtrans, ytrans, ztrans);
+}
+
 int DrawGLScene(GLvoid)										// Here's Where We Do All The Drawing
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		// Clear Screen And Depth Buffer
-	glLoadIdentity();										// Reset The ModelView Matrix
+	//glLoadIdentity();										// Reset The ModelView Matrix
+	
+	RefreshEye();
 
 	for (loop=0;loop<MAX_PARTICLES;loop++)					// Loop Through All The Particles
 	{
@@ -627,9 +658,6 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 				if (keys[VK_ADD] && (slowdown>1.0f)) slowdown-=0.01f;		// Speed Up Particles
 				if (keys[VK_SUBTRACT] && (slowdown<4.0f)) slowdown+=0.01f;	// Slow Down Particles
 
-				if (keys[VK_PRIOR])	zoom+=0.1f;		// Zoom In
-				if (keys[VK_NEXT])	zoom-=0.1f;		// Zoom Out
-
 				if (keys[VK_RETURN] && !rp)			// Return Key Pressed
 				{
 					rp=true;						// Set Flag Telling Us It's Pressed
@@ -647,17 +675,60 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 				}
 				if (!keys[' '])	sp=false;			// If Spacebar Is Released Clear Flag
 
-				// If Up Arrow And Y Speed Is Less Than 200 Increase Upward Speed
-				if (keys[VK_UP] && (yspeed<200)) yspeed+=1.0f;
+				// ÂþÓÎ
+				if (keys[VK_UP])
+				{
 
-				// If Down Arrow And Y Speed Is Greater Than -200 Increase Downward Speed
-				if (keys[VK_DOWN] && (yspeed>-200)) yspeed-=1.0f;
+					xpos -= (float)sin(heading*piover180) * 0.05f;
+					zpos -= (float)cos(heading*piover180) * 0.05f;
+					if (walkbiasangle >= 359.0f)
+					{
+						walkbiasangle = 0.0f;
+					}
+					else
+					{
+						walkbiasangle+= 10;
+					}
+					walkbias = (float)sin(walkbiasangle * piover180)/20.0f;
+				}
 
-				// If Right Arrow And X Speed Is Less Than 200 Increase Speed To The Right
-				if (keys[VK_RIGHT] && (xspeed<200)) xspeed+=1.0f;
+				if (keys[VK_DOWN])
+				{
+					xpos += (float)sin(heading*piover180) * 0.05f;
+					zpos += (float)cos(heading*piover180) * 0.05f;
+					if (walkbiasangle <= 1.0f)
+					{
+						walkbiasangle = 359.0f;
+					}
+					else
+					{
+						walkbiasangle-= 10;
+					}
+					walkbias = (float)sin(walkbiasangle * piover180)/20.0f;
+				}
 
-				// If Left Arrow And X Speed Is Greater Than -200 Increase Speed To The Left
-				if (keys[VK_LEFT] && (xspeed>-200)) xspeed-=1.0f;
+				if (keys[VK_RIGHT])
+				{
+					heading -= 1.0f;
+					yrot = heading;
+				}
+
+				if (keys[VK_LEFT])
+				{
+					heading += 1.0f;	
+					yrot = heading;
+				}
+
+				if (keys[VK_PRIOR])
+				{
+					lookupdown-= 1.0f;
+				}
+
+				if (keys[VK_NEXT])
+				{
+					lookupdown+= 1.0f;
+				}
+				// ÂþÓÎ
 
 				delay++;							// Increase Rainbow Mode Color Cycling Delay Counter
 
