@@ -35,7 +35,7 @@ GLfloat xspeed;				// X Rotation Speed
 GLfloat yspeed;				// Y Rotation Speed
 GLfloat	z=-5.0f;			// Depth Into The Screen
 
-GLUquadricObj *quadratic;	// Storage For Our Quadratic Objects ( NEW )
+GLUquadricObj *quadratic;	// Storage For Our Quadratic Objects ( NEW ) 
 
 GLfloat LightAmbient[]=		{ 0.5f, 0.5f, 0.5f, 1.0f };
 GLfloat LightDiffuse[]=		{ 1.0f, 1.0f, 1.0f, 1.0f };
@@ -153,9 +153,9 @@ int InitGL(GLvoid)										// All Setup For OpenGL Goes Here
 	glLightfv(GL_LIGHT1, GL_POSITION,LightPosition);	// Position The Light
 	glEnable(GL_LIGHT1);								// Enable Light One
 
-	quadratic=gluNewQuadric();							// Create A Pointer To The Quadric Object (Return 0 If No Memory) (NEW)
-	gluQuadricNormals(quadratic, GLU_SMOOTH);			// Create Smooth Normals (NEW)
-	gluQuadricTexture(quadratic, GL_TRUE);				// Create Texture Coords (NEW)
+	quadratic=gluNewQuadric();							// Create A Pointer To The Quadric Object (Return 0 If No Memory) (NEW) 
+	gluQuadricNormals(quadratic, GLU_SMOOTH);			// Create Smooth Normals (NEW) 
+	gluQuadricTexture(quadratic, GL_TRUE);				// Create Texture Coords (NEW) 
 
 	return TRUE;										// Initialization Went OK
 }
@@ -226,7 +226,7 @@ int DrawGLScene(GLvoid)									// Here's Where We Do All The Drawing
 		gluDisk(quadratic,0.5f,1.5f,32,32);				// Draw A Disc (CD Shape) With An Inner Radius Of 0.5, And An Outer Radius Of 2.  Plus A Lot Of Segments ;)
 		break;
 	case 3:
-		gluSphere(quadratic,1.3f,32,32);				// Draw A Sphere With A Radius Of 1 And 16 Longitude And 16 Latitude Segments
+		gluSphere(quadratic,1.3f,32,32); 				// Draw A Sphere With A Radius Of 1 And 16 Longitude And 16 Latitude Segments
 		break;
 	case 4:
 		glTranslatef(0.0f,0.0f,-1.5f);					// Center The Cone
@@ -259,7 +259,7 @@ int DrawGLScene(GLvoid)									// Here's Where We Do All The Drawing
 
 GLvoid KillGLWindow(GLvoid)								// Properly Kill The Window
 {
-	gluDeleteQuadric(quadratic);						// Delete The Quadratic To Free System Resources
+	gluDeleteQuadric(quadratic);	 					// Delete The Quadratic To Free System Resources
 
 	if (fullscreen)										// Are We In Fullscreen Mode?
 	{
