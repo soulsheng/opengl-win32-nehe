@@ -130,7 +130,7 @@ int InitGL(GLvoid)										// All Setup For OpenGL Goes Here
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 
-	
+#if 1	// 灯光照在球面上产生高亮效果
 	glMaterialfv(GL_FRONT,GL_SPECULAR,spec);
 	glMaterialfv(GL_FRONT,GL_SHININESS,&df);
 
@@ -142,7 +142,8 @@ int InitGL(GLvoid)										// All Setup For OpenGL Goes Here
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT,amb);
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT,GL_AMBIENT_AND_DIFFUSE);
-   
+#endif
+
 	glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
    	

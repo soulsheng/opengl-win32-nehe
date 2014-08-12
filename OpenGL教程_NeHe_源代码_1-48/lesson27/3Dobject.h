@@ -66,8 +66,8 @@ inline int ReadObject(char *st, glObject *o){
 // connectivity procedure - based on Gamasutra's article
 // hard to explain here
 inline void SetConnectivity(glObject *o){
-	unsigned int p1i, p2i, p1j, p2j;
-	unsigned int P1i, P2i, P1j, P2j;
+	int p1i, p2i, p1j, p2j;
+	int P1i, P2i, P1j, P2j;
 	unsigned int i,j,ki,kj;
 
 	for(i=0;i<o->nPlanes-1;i++)
